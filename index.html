@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FamilyMeals">
 <meta name="theme-color" content="#1a2e1f">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
 <title>FamilyMeals</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -132,6 +134,11 @@ input:focus, textarea:focus { border-color:var(--primary); }
 .overlay.show { display:flex; }
 .overlay-card { background:#fff; border-radius:20px; padding:24px; width:100%; max-width:440px; }
 
+/* ── LOGO ── */
+.app-logo { display:flex; align-items:center; justify-content:center; }
+.app-logo svg { filter: drop-shadow(0 4px 12px rgba(45,106,79,0.3)); }
+.app-logo-sm svg { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15)); }
+
 /* ── API KEY SCREEN ── */
 #screen-apikey { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:100dvh; padding:28px; background:var(--bg); }
 #screen-apikey.active { display:flex; }
@@ -147,7 +154,7 @@ input:focus, textarea:focus { border-color:var(--primary); }
 <div id="screen-apikey" class="screen active">
   <div class="apikey-wrap">
     <div style="text-align:center; margin-bottom:28px;">
-      <div style="font-size:52px;">🥦</div>
+      <div class="app-logo" style="margin-bottom:8px;" id="logo-apikey"></div>
       <h1 style="font-size:26px; font-weight:900; margin:10px 0 6px;">FamilyMeals</h1>
       <p style="color:var(--text-muted); font-size:14px;">Pour fonctionner, l'app a besoin de ta clé API Anthropic.</p>
     </div>
@@ -170,7 +177,7 @@ input:focus, textarea:focus { border-color:var(--primary); }
      SCREEN: LOADING
 ══════════════════════════════════════════════ -->
 <div id="screen-loading" class="screen">
-  <div class="spinner">🍽️</div>
+  <div class="app-logo" id="logo-loading"></div>
   <div id="loading-msg" style="font-size:20px; font-weight:800;">Génération en cours...</div>
   <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   <p style="color:var(--text-muted); font-size:14px; max-width:280px; line-height:1.6;">
@@ -201,7 +208,7 @@ input:focus, textarea:focus { border-color:var(--primary); }
 ══════════════════════════════════════════════ -->
 <div id="screen-home" class="screen">
   <div class="home-hero">
-    <div style="font-size:46px;">🥦</div>
+    <div class="app-logo" id="logo-home" style="margin-bottom:4px;"></div>
     <h1>FamilyMeals</h1>
     <p>Votre chef personnel pour parents pressés</p>
   </div>
@@ -546,7 +553,7 @@ async function callClaude(prompt, maxTokens=6000) {
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: 'claude-opus-4-5',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: maxTokens,
       messages: [{ role: 'user', content: prompt }],
     }),
@@ -937,8 +944,57 @@ function clearAll() {
 }
 
 // ══════════════════════════════════════════════
+// LOGO
+// ══════════════════════════════════════════════
+function makeLogo(size = 72, light = false) {
+  const c1 = light ? 'rgba(255,255,255,0.95)' : '#2D6A4F';
+  const c2 = light ? 'rgba(255,255,255,0.22)' : 'rgba(45,106,79,0.12)';
+  const c3 = light ? '#fff' : '#2D6A4F';
+  const steam = light ? 'rgba(255,255,255,0.7)' : 'rgba(45,106,79,0.5)';
+  const bowl = light ? 'white' : 'white';
+  const veg = light ? '#52B788' : '#52B788';
+  const acc = light ? '#F4A261' : '#F4A261';
+  const r = size / 72;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="72" height="72" rx="${20*r}" fill="${c1}"/>
+    <!-- vapeur -->
+    <path d="M26 30 Q24 25 26 20 Q28 15 26 10" stroke="${steam}" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+    <path d="M36 28 Q34 23 36 18 Q38 13 36 8" stroke="${steam}" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+    <path d="M46 30 Q44 25 46 20 Q48 15 46 10" stroke="${steam}" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+    <!-- assiette ombre -->
+    <ellipse cx="36" cy="56" rx="20" ry="3" fill="rgba(0,0,0,0.07)"/>
+    <!-- bol -->
+    <path d="M16 40 Q16 58 36 58 Q56 58 56 40 Z" fill="${bowl}"/>
+    <path d="M16 40 Q16 58 36 58 Q56 58 56 40" stroke="rgba(0,0,0,0.06)" stroke-width="1" fill="none"/>
+    <!-- bord bol -->
+    <rect x="14" y="37" width="44" height="6" rx="3" fill="${bowl}"/>
+    <rect x="14" y="37" width="44" height="6" rx="3" fill="rgba(0,0,0,0.04)"/>
+    <!-- contenu coloré -->
+    <circle cx="27" cy="47" r="5" fill="${veg}"/>
+    <circle cx="36" cy="46" r="6" fill="${acc}"/>
+    <circle cx="45" cy="47" r="5" fill="${veg}"/>
+    <!-- highlights -->
+    <circle cx="25" cy="45.5" r="1.5" fill="rgba(255,255,255,0.6)"/>
+    <circle cx="34" cy="44.5" r="2" fill="rgba(255,255,255,0.6)"/>
+    <!-- badge étoile -->
+    <circle cx="55" cy="17" r="8" fill="${acc}"/>
+    <text x="55" y="21" text-anchor="middle" font-size="10" fill="white" font-weight="900" font-family="system-ui">★</text>
+  </svg>`;
+}
+
+function injectLogos() {
+  const lgHome = document.getElementById('logo-home');
+  if (lgHome) lgHome.innerHTML = makeLogo(64, true);
+  const lgApi = document.getElementById('logo-apikey');
+  if (lgApi) lgApi.innerHTML = makeLogo(80, false);
+  const lgLoad = document.getElementById('logo-loading');
+  if (lgLoad) { lgLoad.innerHTML = makeLogo(72, false); lgLoad.style.animation = 'spin 3s linear infinite'; }
+}
+
+// ══════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════
+injectLogos();
 init();
 </script>
 </body>
