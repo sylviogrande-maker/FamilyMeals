@@ -566,7 +566,7 @@ async function callClaude(prompt, maxTokens=6000) {
   return JSON.parse(clean);
 }
 
-function buildPrompt() {
+function buildPromptMeals() {
   const p = state.profile;
   const portions = p.adults + (p.lunches ? p.adults : 0);
   const recentMeals = state.history.slice(-14).map(h => h.name).join(', ');
@@ -583,24 +583,22 @@ PROFIL FAMILLE:
 - Préférences: ${p.preferences.join(', ')}
 - Aliments à éviter: ${p.avoid || 'aucun'}
 - Appétit: ${p.appetite}
-${recentMeals ? `- Éviter ces repas récents: ${recentMeals}` : ''}
+${recentMeals ? '- Éviter ces repas récents: ' + recentMeals : ''}
 
 RÈGLES:
 1. ${hasAF ? 'PRIORITÉ Air Fryer et vapeur' : 'Utiliser les équipements disponibles'}
-2. Varier les protéines: ~4 poulet, ~2 poisson, ~3 végétarien, ~2 viande hachée, ~3 rapides
+2. Varier: ~4 poulet, ~2 poisson, ~3 végétarien, ~2 viande hachée, ~3 rapides
 3. Chaque repas = 1 protéine + 1 féculent + 1-2 légumes
 4. Réutiliser certains ingrédients entre recettes (anti-gaspillage)
-5. Pas de 3 plats lourds consécutifs
-6. ${portions} portions par recette
-7. Étapes courtes et pratiques (max 5 étapes)
+5. ${portions} portions par recette
+6. Étapes courtes (max 4 étapes)
 
-RÉPONDS UNIQUEMENT en JSON valide (sans markdown ni backticks), format exact:
+RÉPONDS UNIQUEMENT en JSON valide (sans markdown), format exact:
 {
-  "generated_at": "${new Date().toISOString()}",
   "meals": [
     {
       "day": 1,
-      "name": "Poulet paprika Air Fryer",
+      "name": "Nom du plat",
       "time": "25 min",
       "method": "Air Fryer",
       "emoji": "🍗",
@@ -608,392 +606,36 @@ RÉPONDS UNIQUEMENT en JSON valide (sans markdown ni backticks), format exact:
       "complexity": "simple",
       "portions": ${portions},
       "ingredients": [
-        {"item": "Blancs de poulet", "qty": "600g", "category": "viandes"},
-        {"item": "Pommes de terre", "qty": "500g", "category": "legumes"}
+        {"item": "Blancs de poulet", "qty": "600g", "category": "viandes"}
       ],
-      "steps": [
-        "Couper le poulet en morceaux, assaisonner avec paprika, sel, huile d'olive.",
-        "Cuire à l'Air Fryer 200°C pendant 18 min, retourner à mi-cuisson.",
-        "Cuire les pommes de terre à la vapeur 15 min en parallèle."
-      ],
-      "tip": "Mariner 10 min avant pour plus de saveur.",
+      "steps": ["Étape 1", "Étape 2"],
+      "tip": "Astuce rapide",
       "emergency": false
     }
-  ],
+  ]
+}`;
+}
+
+function buildPromptShopping(mealNames) {
+  return `Tu es un assistant cuisine. Voici les 14 repas prévus sur 2 semaines:
+
+${mealNames}
+
+Génère une liste de courses consolidée séparée en semaine 1 (jours 1-7) et semaine 2 (jours 8-14).
+Regroupe et cumule les quantités des mêmes ingrédients dans chaque semaine.
+Catégories: legumes, fruits, viandes, cremerie, epicerie, surgeles, autre
+
+RÉPONDS UNIQUEMENT en JSON valide (sans markdown), format exact:
+{
   "shopping_list": {
     "semaine1": [
-      {"item": "Blancs de poulet", "qty": "1.2kg", "category": "viandes"}
+      {"item": "Blancs de poulet", "qty": "1.2kg", "category": "viandes"},
+      {"item": "Brocoli", "qty": "2 têtes", "category": "legumes"}
     ],
     "semaine2": [
-      {"item": "Filets de saumon", "qty": "600g", "category": "viandes"}
+      {"item": "Filets de saumon", "qty": "600g", "category": "viandes"},
+      {"item": "Courgettes", "qty": "4 pièces", "category": "legumes"}
     ]
   }
 }`;
 }
-
-async function generatePlan() {
-  if (!state.apiKey) { showScreen('apikey'); return; }
-  showScreen('loading');
-  document.getElementById('loading-msg').textContent = '🧠 Composition de vos 14 repas...';
-  try {
-    const result = await callClaude(buildPrompt(), 7000);
-    result.generated_at = new Date().toISOString();
-    save('plan', result);
-    save('checked', {});
-    save('ratings', {});
-    renderHome();
-    showScreen('planning');
-  } catch(e) {
-    showScreen('home');
-    alert('Erreur: ' + e.message + '\n\nVérifiez votre clé API dans les Réglages.');
-  }
-}
-
-async function replaceDay(day) {
-  const meal = state.plan.meals.find(m => m.day === day);
-  const btn = document.getElementById('replace-btn-'+day);
-  if (btn) btn.textContent = '⏳';
-  try {
-    const p = state.profile;
-    const portions = p.adults + (p.lunches ? p.adults : 0);
-    const prompt = `Génère UN repas de remplacement pour "${meal?.name}" (à ne pas répéter).
-Profil: ${p.adults} adultes, équipements: ${p.equipment.join(', ')}, max ${p.maxTime}min, niveau ${p.level}.
-UNIQUEMENT JSON valide:
-{"meal":{"day":${day},"name":"...","time":"...","method":"...","emoji":"...","protein":"...","complexity":"simple","portions":${portions},"ingredients":[{"item":"...","qty":"...","category":"..."}],"steps":["..."],"tip":"...","emergency":false}}`;
-    const result = await callClaude(prompt, 1500);
-    const newMeals = state.plan.meals.map(m => m.day === day ? {...result.meal, day} : m);
-    save('plan', {...state.plan, meals: newMeals});
-    renderPlanning();
-  } catch(e) {
-    alert('Erreur: ' + e.message);
-  }
-  renderPlanning();
-}
-
-async function openEmergency() {
-  document.getElementById('emergency-overlay').classList.add('show');
-  document.getElementById('emergency-content').innerHTML = '<div style="text-align:center;padding:20px;"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>';
-  try {
-    const p = state.profile;
-    const hasAF = p.equipment.includes('airfryer');
-    const prompt = `Génère 3 repas ultra-rapides (max 15 min, minimum vaisselle${hasAF?', priorité Air Fryer':''}).
-UNIQUEMENT JSON valide:
-{"meals":[{"name":"...","time":"...","method":"...","description":"..."}]}`;
-    const result = await callClaude(prompt, 800);
-    document.getElementById('emergency-content').innerHTML = result.meals.map(m => `
-      <div class="card" style="margin-bottom:10px; padding:14px 16px;">
-        <div style="font-weight:800; font-size:15px;">${m.name}</div>
-        <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">⏱️ ${m.time} · 🔧 ${m.method}</div>
-        ${m.description ? `<div style="font-size:13px; color:var(--text); margin-top:6px;">${m.description}</div>` : ''}
-      </div>`).join('');
-  } catch(e) {
-    document.getElementById('emergency-content').innerHTML = `
-      <div style="color:var(--danger); font-size:14px;">Erreur: ${e.message}</div>`;
-  }
-}
-function closeEmergency() {
-  document.getElementById('emergency-overlay').classList.remove('show');
-}
-
-// ══════════════════════════════════════════════
-// RENDER HOME
-// ══════════════════════════════════════════════
-function renderHome() {
-  const plan = state.plan;
-  if (!plan) {
-    document.getElementById('home-quick').style.display = 'none';
-    document.getElementById('home-tonight').style.display = 'none';
-    document.getElementById('home-empty').style.display = 'block';
-    document.getElementById('home-status').textContent = 'Aucun planning actif';
-    return;
-  }
-  document.getElementById('home-empty').style.display = 'none';
-  document.getElementById('home-quick').style.display = 'block';
-
-  const genDate = new Date(plan.generated_at);
-  const nextGen = new Date(genDate.getTime() + 14 * 24*60*60*1000);
-  const daysLeft = Math.max(0, Math.round((nextGen - new Date()) / (24*60*60*1000)));
-  document.getElementById('home-status').textContent = daysLeft > 0
-    ? `Prochain renouvellement dans ${daysLeft} jour${daysLeft>1?'s':''}`
-    : '🔄 Renouvellement recommandé !';
-
-  // Tonight
-  const daysDiff = Math.floor((new Date() - genDate) / (24*60*60*1000));
-  const dayNum = (daysDiff % 14) + 1;
-  const todayMeal = plan.meals?.find(m => m.day === dayNum);
-  const tonightEl = document.getElementById('home-tonight');
-  if (todayMeal) {
-    tonightEl.style.display = 'block';
-    tonightEl.innerHTML = `
-      <div class="card" style="background:#F0F4FF;">
-        <div style="font-size:12px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Ce soir 🌙</div>
-        <div style="display:flex;gap:12px;align-items:center;">
-          <span style="font-size:36px;">${todayMeal.emoji||'🍽️'}</span>
-          <div>
-            <div style="font-weight:800;font-size:16px;">${todayMeal.name}</div>
-            <div style="font-size:13px;color:var(--text-muted);margin-top:3px;">⏱️ ${todayMeal.time} · 🔧 ${todayMeal.method}</div>
-          </div>
-        </div>
-        <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="openRecipe(${todayMeal.day})">Voir la recette</button>
-      </div>`;
-  } else {
-    tonightEl.style.display = 'none';
-  }
-}
-
-// ══════════════════════════════════════════════
-// RENDER PLANNING
-// ══════════════════════════════════════════════
-function renderPlanning() {
-  const plan = state.plan;
-  const el = document.getElementById('planning-content');
-  if (!plan || !plan.meals) {
-    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Aucun planning généré.</div>';
-    return;
-  }
-  let html = '';
-  [1,2].forEach(week => {
-    html += `<div class="week-label">— Semaine ${week} —</div>`;
-    plan.meals.filter(m => week===1 ? m.day<=7 : m.day>7).forEach(meal => {
-      const rating = state.ratings[meal.day];
-      html += `
-        <div class="card meal-card">
-          <div class="meal-row">
-            <div class="meal-emoji">${meal.emoji||'🍽️'}</div>
-            <div class="meal-info">
-              <div class="meal-day-label">${DAYS_FR[(meal.day-1)%7]}</div>
-              <div class="meal-name">${meal.name}</div>
-              <div class="meal-badges">
-                <span class="badge" style="background:var(--accent-soft);color:var(--accent);">⏱️ ${meal.time}</span>
-                <span class="badge" style="background:#EEF7F3;color:var(--primary);">🔧 ${meal.method}</span>
-                ${state.profile.lunches ? '<span class="badge" style="background:#F0F4FF;color:var(--purple);">🥡 Lunch</span>' : ''}
-                ${rating==='like' ? '<span class="badge" style="background:#DCFCE7;color:#166534;">👍</span>' : ''}
-                ${rating==='ban' ? '<span class="badge" style="background:#FEE2E2;color:var(--danger);">❌</span>' : ''}
-              </div>
-            </div>
-          </div>
-          <div class="meal-actions">
-            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="openRecipe(${meal.day})">Voir la recette</button>
-            <button class="btn btn-ghost btn-sm" style="flex:1;" id="replace-btn-${meal.day}" onclick="replaceDay(${meal.day})">🔄 Remplacer</button>
-          </div>
-        </div>`;
-    });
-  });
-  el.innerHTML = html;
-}
-
-// ══════════════════════════════════════════════
-// RECIPE
-// ══════════════════════════════════════════════
-function openRecipe(day) {
-  const meal = state.plan?.meals?.find(m => m.day === day);
-  if (!meal) return;
-  state.currentDay = day;
-
-  document.getElementById('recipe-emoji').textContent = meal.emoji || '🍽️';
-  document.getElementById('recipe-name').textContent = meal.name;
-  document.getElementById('recipe-badges').innerHTML = `
-    <span class="badge" style="background:rgba(255,255,255,0.25);color:#fff;">⏱️ ${meal.time}</span>
-    <span class="badge" style="background:rgba(255,255,255,0.25);color:#fff;">🔧 ${meal.method}</span>
-    <span class="badge" style="background:rgba(255,255,255,0.25);color:#fff;">👥 ${meal.portions} portions</span>`;
-
-  // Ingredients
-  document.getElementById('recipe-ingredients').innerHTML = `
-    <h3 style="font-size:16px;font-weight:800;margin-bottom:12px;">🛒 Ingrédients</h3>
-    ${(meal.ingredients||[]).map((ing,i) => `
-      <div class="ing-row" style="${i===meal.ingredients.length-1?'border:none':''}">
-        <span style="font-weight:600;">${ing.item}</span>
-        <span style="color:var(--primary-light);font-weight:800;">${ing.qty}</span>
-      </div>`).join('')}`;
-
-  // Steps
-  document.getElementById('recipe-steps').innerHTML = `
-    <h3 style="font-size:16px;font-weight:800;margin-bottom:12px;">👨‍🍳 Préparation</h3>
-    ${(meal.steps||[]).map((step,i) => `
-      <div class="step-row">
-        <div class="step-num">${i+1}</div>
-        <span style="line-height:1.5;">${step}</span>
-      </div>`).join('')}`;
-
-  // Tip
-  document.getElementById('recipe-tip').innerHTML = meal.tip
-    ? `<div class="tip-box"><strong style="color:var(--accent);">💡 Astuce : </strong>${meal.tip}</div>` : '';
-
-  // Rating
-  const currentRating = state.ratings[day];
-  document.getElementById('recipe-rating').innerHTML = [
-    {v:'like',l:'👍 Aimé'},{v:'refaire',l:'🔄 À refaire'},{v:'moyen',l:'😐 Moyen'},{v:'ban',l:'❌ Ne plus faire'}
-  ].map(r => `<button class="chip ${currentRating===r.v?'active':''}" onclick="rateDay(${day},'${r.v}')">${r.l}</button>`).join('');
-
-  showScreen('recipe');
-}
-
-function rateDay(day, rating) {
-  const newRatings = {...state.ratings, [day]: rating};
-  save('ratings', newRatings);
-  if (rating === 'like' || rating === 'refaire') {
-    const meal = state.plan?.meals?.find(m => m.day === day);
-    if (meal) {
-      const newHistory = [...state.history, {name:meal.name, date:new Date().toISOString(), rating}].slice(-50);
-      save('history', newHistory);
-    }
-  }
-  // Re-render rating buttons
-  const currentRating = state.ratings[day];
-  document.getElementById('recipe-rating').innerHTML = [
-    {v:'like',l:'👍 Aimé'},{v:'refaire',l:'🔄 À refaire'},{v:'moyen',l:'😐 Moyen'},{v:'ban',l:'❌ Ne plus faire'}
-  ].map(r => `<button class="chip ${currentRating===r.v?'active':''}" onclick="rateDay(${day},'${r.v}')">${r.l}</button>`).join('');
-}
-
-// ══════════════════════════════════════════════
-// SHOPPING
-// ══════════════════════════════════════════════
-function setShopWeek(w) {
-  state.shopWeek = w;
-  document.getElementById('week1-btn').classList.toggle('active', w===1);
-  document.getElementById('week2-btn').classList.toggle('active', w===2);
-  renderShopping();
-}
-
-function renderShopping() {
-  const plan = state.plan;
-  const el = document.getElementById('shopping-content');
-  if (!plan) {
-    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Générez d\'abord votre planning.</div>';
-    return;
-  }
-  const list = plan.shopping_list?.[`semaine${state.shopWeek}`] || [];
-  let html = '';
-  CATS.forEach(cat => {
-    const items = list.filter(i => (i.category||'autre') === cat);
-    if (!items.length) return;
-    html += `<div class="cat-label">${CAT_EMOJI[cat]} ${CAT_LABEL[cat]}</div>`;
-    html += `<div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">`;
-    items.forEach((item, i) => {
-      const key = `${state.shopWeek}-${cat}-${i}`;
-      const checked = state.checked[key];
-      html += `
-        <div class="shop-item ${checked?'checked':''}" onclick="toggleCheck('${key}')">
-          <div class="checkbox ${checked?'checked':''}">${checked?'<span style="color:#fff;font-size:12px;font-weight:900;">✓</span>':''}</div>
-          <span class="shop-name ${checked?'checked':''}">${item.item}</span>
-          <span class="shop-qty">${item.qty}</span>
-        </div>`;
-    });
-    html += '</div>';
-  });
-  if (!html) html = '<div style="text-align:center;padding:40px;color:var(--text-muted);">Liste vide pour cette semaine.</div>';
-  el.innerHTML = html;
-}
-
-function toggleCheck(key) {
-  const newChecked = {...state.checked, [key]: !state.checked[key]};
-  save('checked', newChecked);
-  renderShopping();
-}
-function clearChecked() {
-  save('checked', {});
-  renderShopping();
-}
-
-// ══════════════════════════════════════════════
-// SETTINGS
-// ══════════════════════════════════════════════
-function renderSettings() {
-  const p = state.profile;
-  if (p) {
-    document.getElementById('settings-profile').innerHTML = `
-      <div style="font-weight:800;margin-bottom:12px;">👤 Votre profil</div>
-      <div style="color:var(--text-muted);font-size:14px;line-height:2;">
-        ${p.adults} adulte(s) · ${p.children} enfant(s)<br>
-        Lunchs : ${p.lunches?'✅ Oui':'Non'}<br>
-        Équipements : ${p.equipment.join(', ')}<br>
-        Temps max : ${p.maxTime} min · Niveau : ${p.level}
-      </div>`;
-  }
-  const histEl = document.getElementById('settings-history');
-  if (state.history.length) {
-    histEl.innerHTML = `
-      <div style="font-weight:800;margin-bottom:12px;">📖 Historique récent</div>
-      ${state.history.slice(-8).reverse().map(h => `
-        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px;">
-          <span style="font-weight:600;">${h.name}</span>
-          <span>${h.rating==='like'?'👍':h.rating==='refaire'?'🔄':h.rating==='ban'?'❌':'😐'}</span>
-        </div>`).join('')}`;
-  } else {
-    histEl.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">Aucun historique.</div>';
-  }
-  const keyEl = document.getElementById('settings-api-key');
-  if (keyEl) keyEl.value = state.apiKey || '';
-}
-
-function resetProfile() {
-  if (confirm('Refaire l\'onboarding ?')) {
-    localStorage.removeItem('fm_profile');
-    state.profile = null;
-    startOnboarding();
-  }
-}
-function clearAll() {
-  if (confirm('Tout effacer (profil, planning, historique) ?')) {
-    ['profile','plan','history','checked','ratings'].forEach(k => localStorage.removeItem('fm_'+k));
-    Object.assign(state, {profile:null, plan:null, history:[], checked:{}, ratings:{}});
-    showScreen('home');
-  }
-}
-
-// ══════════════════════════════════════════════
-// LOGO
-// ══════════════════════════════════════════════
-function makeLogo(size = 72, light = false) {
-  const c1 = light ? 'rgba(255,255,255,0.95)' : '#2D6A4F';
-  const c2 = light ? 'rgba(255,255,255,0.22)' : 'rgba(45,106,79,0.12)';
-  const c3 = light ? '#fff' : '#2D6A4F';
-  const steam = light ? 'rgba(255,255,255,0.7)' : 'rgba(45,106,79,0.5)';
-  const bowl = light ? 'white' : 'white';
-  const veg = light ? '#52B788' : '#52B788';
-  const acc = light ? '#F4A261' : '#F4A261';
-  const r = size / 72;
-  return `<svg width="${size}" height="${size}" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="72" height="72" rx="${20*r}" fill="${c1}"/>
-    <!-- vapeur -->
-    <path d="M26 30 Q24 25 26 20 Q28 15 26 10" stroke="${steam}" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-    <path d="M36 28 Q34 23 36 18 Q38 13 36 8" stroke="${steam}" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-    <path d="M46 30 Q44 25 46 20 Q48 15 46 10" stroke="${steam}" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-    <!-- assiette ombre -->
-    <ellipse cx="36" cy="56" rx="20" ry="3" fill="rgba(0,0,0,0.07)"/>
-    <!-- bol -->
-    <path d="M16 40 Q16 58 36 58 Q56 58 56 40 Z" fill="${bowl}"/>
-    <path d="M16 40 Q16 58 36 58 Q56 58 56 40" stroke="rgba(0,0,0,0.06)" stroke-width="1" fill="none"/>
-    <!-- bord bol -->
-    <rect x="14" y="37" width="44" height="6" rx="3" fill="${bowl}"/>
-    <rect x="14" y="37" width="44" height="6" rx="3" fill="rgba(0,0,0,0.04)"/>
-    <!-- contenu coloré -->
-    <circle cx="27" cy="47" r="5" fill="${veg}"/>
-    <circle cx="36" cy="46" r="6" fill="${acc}"/>
-    <circle cx="45" cy="47" r="5" fill="${veg}"/>
-    <!-- highlights -->
-    <circle cx="25" cy="45.5" r="1.5" fill="rgba(255,255,255,0.6)"/>
-    <circle cx="34" cy="44.5" r="2" fill="rgba(255,255,255,0.6)"/>
-    <!-- badge étoile -->
-    <circle cx="55" cy="17" r="8" fill="${acc}"/>
-    <text x="55" y="21" text-anchor="middle" font-size="10" fill="white" font-weight="900" font-family="system-ui">★</text>
-  </svg>`;
-}
-
-function injectLogos() {
-  const lgHome = document.getElementById('logo-home');
-  if (lgHome) lgHome.innerHTML = makeLogo(64, true);
-  const lgApi = document.getElementById('logo-apikey');
-  if (lgApi) lgApi.innerHTML = makeLogo(80, false);
-  const lgLoad = document.getElementById('logo-loading');
-  if (lgLoad) { lgLoad.innerHTML = makeLogo(72, false); lgLoad.style.animation = 'spin 3s linear infinite'; }
-}
-
-// ══════════════════════════════════════════════
-// START
-// ══════════════════════════════════════════════
-injectLogos();
-init();
-</script>
-</body>
-</html>
