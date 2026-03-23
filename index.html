@@ -171,12 +171,6 @@ input:focus{border-color:var(--primary)}
       <div style="font-weight:700;color:var(--text-muted);line-height:1.6;">Appuyez sur le bouton pour générer votre premier planning de 14 repas personnalisés !</div>
     </div>
   </div>
-  <nav class="bottom-nav">
-    <button class="nav-btn active" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
-    <button class="nav-btn" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
-    <button class="nav-btn" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
-    <button class="nav-btn" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
-  </nav>
 </div>
 
 <div id="screen-planning" class="screen">
@@ -186,12 +180,6 @@ input:focus{border-color:var(--primary)}
     <button class="btn btn-danger btn-sm" onclick="openEmergency()">🚨 Urgence</button>
   </div>
   <div class="page-content" id="planning-content"><div style="text-align:center;padding:40px;color:var(--text-muted);">Aucun planning généré.</div></div>
-  <nav class="bottom-nav">
-    <button class="nav-btn" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
-    <button class="nav-btn active" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
-    <button class="nav-btn" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
-    <button class="nav-btn" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
-  </nav>
 </div>
 
 <div id="screen-recipe" class="screen">
@@ -221,12 +209,6 @@ input:focus{border-color:var(--primary)}
     </div>
   </div>
   <div class="page-content" id="shopping-content" style="padding-top:10px;"></div>
-  <nav class="bottom-nav">
-    <button class="nav-btn" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
-    <button class="nav-btn" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
-    <button class="nav-btn active" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
-    <button class="nav-btn" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
-  </nav>
 </div>
 
 <div id="screen-settings" class="screen">
@@ -242,12 +224,6 @@ input:focus{border-color:var(--primary)}
     <button class="btn btn-ghost" style="width:100%;" onclick="resetProfile()">🔄 Refaire l'onboarding</button>
     <button class="btn btn-danger" style="width:100%;margin-top:8px;" onclick="clearAll()">🗑️ Tout effacer</button>
   </div>
-  <nav class="bottom-nav">
-    <button class="nav-btn" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
-    <button class="nav-btn" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
-    <button class="nav-btn" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
-    <button class="nav-btn active" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
-  </nav>
 </div>
 
 <div class="overlay" id="emergency-overlay">
@@ -257,6 +233,15 @@ input:focus{border-color:var(--primary)}
     <button class="btn btn-ghost" style="width:100%;margin-top:16px;" onclick="closeEmergency()">Fermer</button>
   </div>
 </div>
+
+
+<!-- NAV UNIQUE FIXE -->
+<nav class="bottom-nav" id="main-nav">
+  <button class="nav-btn active" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
+  <button class="nav-btn" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
+  <button class="nav-btn" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
+  <button class="nav-btn" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
+</nav>
 
 <script>
 var DAYS_FR=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
@@ -307,6 +292,14 @@ function showScreen(name){
     var el=document.getElementById('screen-'+s);
     if(el)el.classList.toggle('active',s===name);
   });
+  // Mettre à jour l'onglet actif dans la nav unique
+  document.querySelectorAll('.nav-btn[data-nav]').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-nav')===name);
+  });
+  // Masquer la nav sur les écrans sans nav (recipe, loading, etc.)
+  var noNav=['recipe','loading','onboarding','apikey'];
+  var nav=document.getElementById('main-nav');
+  if(nav)nav.style.display=noNav.indexOf(name)>=0?'none':'flex';
   if(name==='planning')renderPlanning();
   if(name==='shopping')renderShopping();
   if(name==='settings')renderSettings();
