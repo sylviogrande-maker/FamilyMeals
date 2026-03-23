@@ -21,7 +21,7 @@
   --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;height:100%;height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased}
+html,body{background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;height:100%;overflow:hidden;-webkit-font-smoothing:antialiased;position:fixed;width:100%}
 .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:18px 20px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
 .btn{border:none;border-radius:12px;cursor:pointer;font-weight:700;font-family:'Nunito',sans-serif;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn-primary{background:var(--primary);color:#fff;padding:14px 24px;font-size:15px}
@@ -37,7 +37,7 @@ input[type=text],input[type=password]{width:100%;padding:11px 14px;border-radius
 input:focus{border-color:var(--primary)}
 
 /* SCREENS */
-.screen{display:none !important;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.screen{display:none !important;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);overscroll-behavior:none}
 .screen.active{display:block !important}
 #screen-loading.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:32px}
 #screen-onboarding.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:24px}
@@ -661,6 +661,28 @@ document.addEventListener('DOMContentLoaded', function() {
       showScreen(btn.getAttribute('data-nav'));
     });
   });
+});
+
+// ═══════════════════════════════════════
+// FIX HAUTEUR SAFARI — empêche le saut quand la barre URL se cache
+// ═══════════════════════════════════════
+function fixHeight() {
+  var h = window.innerHeight;
+  document.documentElement.style.setProperty('--real-vh', h + 'px');
+  document.body.style.height = h + 'px';
+  document.querySelectorAll('.screen').forEach(function(s) {
+    s.style.height = h + 'px';
+    s.style.maxHeight = h + 'px';
+  });
+  var nav = document.getElementById('main-nav');
+  if (nav) nav.style.bottom = '0px';
+}
+
+// Fixer au chargement
+fixHeight();
+// Ne pas écouter resize pour éviter les sauts — la hauteur reste fixe
+window.addEventListener('orientationchange', function() {
+  setTimeout(fixHeight, 300);
 });
 
 init();
