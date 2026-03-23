@@ -422,18 +422,18 @@ function buildPromptWeek(weekNum, startDay, endDay, avoid, profile){
     +'{"meals":[{"day":'+startDay+',"name":"Nom","time":"20 min","method":"Air Fryer","emoji":"🍗","protein":"poulet","complexity":"simple","portions":'+portions+',"ingredients":[{"item":"Poulet","qty":"600g","category":"viandes"},{"item":"Riz","qty":"300g","category":"epicerie"}],"steps":["Assaisonner","Cuire 20min Air Fryer","Servir"],"tip":"Astuce courte","emergency":false}]}';
 }
 
-function buildPromptShopping(meals){
-  var s1=meals.filter(function(m){return m.day<=7;}).map(function(m){
-    return 'J'+m.day+': '+(m.ingredients||[]).map(function(i){return i.item+' '+i.qty;}).join(', ');
-  }).join(' | ');
-  var s2=meals.filter(function(m){return m.day>7;}).map(function(m){
-    return 'J'+m.day+': '+(m.ingredients||[]).map(function(i){return i.item+' '+i.qty;}).join(', ');
-  }).join(' | ');
-  return 'Liste de courses groupée par rayon pour 2 semaines de repas.\n'
-    +'Semaine 1: '+s1+'\nSemaine 2: '+s2+'\n'
-    +'Cumule les mêmes ingrédients. Catégories: legumes,fruits,viandes,cremerie,epicerie,surgeles,autre\n'
-    +'JSON UNIQUEMENT:\n'
-    +'{"shopping_list":{"semaine1":[{"item":"Poulet","qty":"1.2kg","category":"viandes"}],"semaine2":[{"item":"Saumon","qty":"600g","category":"viandes"}]}}';
+function buildPromptShopping(weekNum, meals){
+  var lines=meals.map(function(m){
+    var ings=(m.ingredients||[]).map(function(i){return i.item+' '+i.qty;}).join(', ');
+    return 'Jour '+m.day+' - '+m.name+(ings?' ('+ings+')':'');
+  }).join('\n');
+  return 'Génère une liste de courses complète pour ces 7 dîners (semaine '+weekNum+').\n'
+    +'Repas:\n'+lines+'\n\n'
+    +'IMPORTANT: liste TOUS les ingrédients nécessaires avec quantités précises pour chaque repas.\n'
+    +'Regroupe et cumule les mêmes ingrédients. Catégories: legumes, fruits, viandes, cremerie, epicerie, surgeles, autre\n'
+    +'Retourne entre 15 et 30 articles.\n'
+    +'JSON UNIQUEMENT sans markdown:\n'
+    +'{"shopping_list":{"semaine'+weekNum+'":[{"item":"Blanc de poulet","qty":"800g","category":"viandes"},{"item":"Brocoli","qty":"2 têtes","category":"legumes"},{"item":"Riz basmati","qty":"500g","category":"epicerie"}]}}';
 }
 
 async function generatePlan(){
@@ -445,18 +445,27 @@ async function generatePlan(){
     var r1=await callClaude(buildPromptWeek(1,1,7,'',state.profile),3500);
     var meals1=r1.meals||[];
 
-    // Appel 2 : semaine 2 (jours 8-14), éviter les repas de la semaine 1
+    // Appel 2 : semaine 2 (jours 8-14)
     document.getElementById('loading-msg').textContent='🍽️ Semaine 2 en cours...';
     var avoid2=meals1.map(function(m){return m.name;}).join(', ');
     var r2=await callClaude(buildPromptWeek(2,8,14,avoid2,state.profile),3500);
     var meals2=r2.meals||[];
-    var allMeals=meals1.concat(meals2);
 
-    // Appel 3 : liste de courses
-    document.getElementById('loading-msg').textContent='🛒 Liste de courses...';
-    var r3=await callClaude(buildPromptShopping(allMeals),2000);
+    // Appel 3 : courses semaine 1
+    document.getElementById('loading-msg').textContent='🛒 Courses semaine 1...';
+    var r3=await callClaude(buildPromptShopping(1,meals1),2000);
+    var shop1=(r3.shopping_list&&r3.shopping_list.semaine1)||[];
 
-    save('plan',{generated_at:new Date().toISOString(),meals:allMeals,shopping_list:r3.shopping_list});
+    // Appel 4 : courses semaine 2
+    document.getElementById('loading-msg').textContent='🛒 Courses semaine 2...';
+    var r4=await callClaude(buildPromptShopping(2,meals2),2000);
+    var shop2=(r4.shopping_list&&r4.shopping_list.semaine2)||[];
+
+    save('plan',{
+      generated_at:new Date().toISOString(),
+      meals:meals1.concat(meals2),
+      shopping_list:{semaine1:shop1,semaine2:shop2}
+    });
     save('checked',{});save('ratings',{});
     renderHome();showScreen('planning');
   }catch(e){
