@@ -640,17 +640,31 @@ function resetProfile(){if(confirm('Refaire l\'onboarding ?')){localStorage.remo
 function clearAll(){if(confirm('Tout effacer ?')){['profile','plan','history','checked','ratings'].forEach(function(k){localStorage.removeItem('fm_'+k);});state.profile=null;state.plan=null;state.history=[];state.checked={};state.ratings={};showScreen('apikey');}}
 
 // ═══════════════════════════════════════
-// NAV TACTILE — touchend pour éviter le problème post-scroll
+// NAV TACTILE — détection scroll vs tap
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.nav-btn[data-nav]').forEach(function(btn) {
+    var touchStartX = 0;
+    var touchStartY = 0;
+
+    btn.addEventListener('touchstart', function(e) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, {passive: true});
+
     btn.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      showScreen(btn.getAttribute('data-nav'));
+      var dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
+      var dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+      // Si le doigt n'a pas bougé de plus de 10px c'est un tap
+      if (dx < 10 && dy < 10) {
+        e.preventDefault();
+        e.stopPropagation();
+        showScreen(btn.getAttribute('data-nav'));
+      }
     }, {passive: false});
-    // Fallback click pour desktop
-    btn.addEventListener('click', function(e) {
+
+    // Fallback desktop
+    btn.addEventListener('click', function() {
       showScreen(btn.getAttribute('data-nav'));
     });
   });
