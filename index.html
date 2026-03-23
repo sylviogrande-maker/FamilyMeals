@@ -405,29 +405,34 @@ async function callClaude(prompt,maxTokens){
   return JSON.parse(clean);
 }
 
-function buildPromptMeals(){
-  var p=state.profile;
+function buildPromptWeek(weekNum, startDay, endDay, avoid, profile){
+  var p=profile;
   var portions=p.adults+(p.lunches?p.adults:0);
-  var recent=state.history.slice(-14).map(function(h){return h.name;}).join(', ');
   var hasAF=p.equipment.indexOf('airfryer')>=0;
-  return 'Tu es chef cuisinier. Génère 14 dîners pour une famille.\n'
+  var days=[];for(var i=startDay;i<=endDay;i++)days.push(i);
+  return 'Chef cuisinier: génère exactement '+(endDay-startDay+1)+' dîners (jours '+startDay+' à '+endDay+').\n'
     +'Profil: '+p.adults+' adulte(s), équipements: '+p.equipment.join(', ')
-    +', max '+p.maxTime+'min, niveau '+p.level+', objectifs: '+p.goals.join(', ')
+    +', max '+p.maxTime+'min, niveau '+p.level
     +', préférences: '+p.preferences.join(', ')+(p.avoid?', éviter: '+p.avoid:'')
-    +', appétit: '+p.appetite+', '+portions+' portions/repas'
-    +(recent?'\nÉviter: '+recent:'')
-    +'\nRègles: '+(hasAF?'Priorité Air Fryer/vapeur. ':'')
-    +'Varier protéines (poulet, poisson, végé, viande hachée). '
-    +'1 protéine + 1 féculent + 1-2 légumes par repas. Max 4 étapes.\n'
-    +'RÉPONDS UNIQUEMENT en JSON valide sans markdown:\n'
-    +'{"meals":[{"day":1,"name":"Nom","time":"25 min","method":"Air Fryer","emoji":"🍗","protein":"poulet","complexity":"simple","portions":'+portions+',"ingredients":[{"item":"Poulet","qty":"600g","category":"viandes"}],"steps":["Étape 1"],"tip":"Astuce","emergency":false}]}';
+    +', '+portions+' portions/repas'
+    +(avoid?'\nNe pas répéter: '+avoid:'')
+    +'\n'+(hasAF?'Priorité Air Fryer/vapeur. ':'')
+    +'1 protéine + 1 féculent + 1-2 légumes. Max 3 étapes courtes.\n'
+    +'JSON valide UNIQUEMENT, jours '+days.join(',')+' :\n'
+    +'{"meals":[{"day":'+startDay+',"name":"Nom","time":"20 min","method":"Air Fryer","emoji":"🍗","protein":"poulet","complexity":"simple","portions":'+portions+',"ingredients":[{"item":"Poulet","qty":"600g","category":"viandes"},{"item":"Riz","qty":"300g","category":"epicerie"}],"steps":["Assaisonner","Cuire 20min Air Fryer","Servir"],"tip":"Astuce courte","emergency":false}]}';
 }
 
-function buildPromptShopping(mealsList){
-  return 'Génère une liste de courses pour ces 14 repas (semaine 1=jours 1-7, semaine 2=jours 8-14).\n\n'
-    +mealsList+'\n\n'
-    +'Regroupe et cumule les mêmes ingrédients. Catégories: legumes, fruits, viandes, cremerie, epicerie, surgeles, autre\n'
-    +'RÉPONDS UNIQUEMENT en JSON valide sans markdown:\n'
+function buildPromptShopping(meals){
+  var s1=meals.filter(function(m){return m.day<=7;}).map(function(m){
+    return 'J'+m.day+': '+(m.ingredients||[]).map(function(i){return i.item+' '+i.qty;}).join(', ');
+  }).join(' | ');
+  var s2=meals.filter(function(m){return m.day>7;}).map(function(m){
+    return 'J'+m.day+': '+(m.ingredients||[]).map(function(i){return i.item+' '+i.qty;}).join(', ');
+  }).join(' | ');
+  return 'Liste de courses groupée par rayon pour 2 semaines de repas.\n'
+    +'Semaine 1: '+s1+'\nSemaine 2: '+s2+'\n'
+    +'Cumule les mêmes ingrédients. Catégories: legumes,fruits,viandes,cremerie,epicerie,surgeles,autre\n'
+    +'JSON UNIQUEMENT:\n'
     +'{"shopping_list":{"semaine1":[{"item":"Poulet","qty":"1.2kg","category":"viandes"}],"semaine2":[{"item":"Saumon","qty":"600g","category":"viandes"}]}}';
 }
 
@@ -435,16 +440,23 @@ async function generatePlan(){
   if(!state.apiKey){showScreen('apikey');return;}
   showScreen('loading');
   try{
-    document.getElementById('loading-msg').textContent='🍽️ Composition des 14 repas...';
-    var mealsResult=await callClaude(buildPromptMeals(),5000);
+    // Appel 1 : semaine 1 (jours 1-7)
+    document.getElementById('loading-msg').textContent='🍽️ Semaine 1 en cours...';
+    var r1=await callClaude(buildPromptWeek(1,1,7,'',state.profile),3500);
+    var meals1=r1.meals||[];
 
-    document.getElementById('loading-msg').textContent='🛒 Génération des listes de courses...';
-    var mealsList=mealsResult.meals.map(function(m){
-      return 'Jour '+m.day+': '+m.name+' ('+(m.ingredients||[]).map(function(i){return i.item+' '+i.qty;}).join(', ')+')';
-    }).join('\n');
-    var shopResult=await callClaude(buildPromptShopping(mealsList),2500);
+    // Appel 2 : semaine 2 (jours 8-14), éviter les repas de la semaine 1
+    document.getElementById('loading-msg').textContent='🍽️ Semaine 2 en cours...';
+    var avoid2=meals1.map(function(m){return m.name;}).join(', ');
+    var r2=await callClaude(buildPromptWeek(2,8,14,avoid2,state.profile),3500);
+    var meals2=r2.meals||[];
+    var allMeals=meals1.concat(meals2);
 
-    save('plan',{generated_at:new Date().toISOString(),meals:mealsResult.meals,shopping_list:shopResult.shopping_list});
+    // Appel 3 : liste de courses
+    document.getElementById('loading-msg').textContent='🛒 Liste de courses...';
+    var r3=await callClaude(buildPromptShopping(allMeals),2000);
+
+    save('plan',{generated_at:new Date().toISOString(),meals:allMeals,shopping_list:r3.shopping_list});
     save('checked',{});save('ratings',{});
     renderHome();showScreen('planning');
   }catch(e){
