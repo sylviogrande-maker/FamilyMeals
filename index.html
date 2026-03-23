@@ -41,6 +41,7 @@ input:focus{border-color:var(--primary)}
 .screen{display:none !important;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);overscroll-behavior-y:contain;touch-action:pan-y}
 #screen-home{overflow-y:hidden}
 .screen.active{display:block !important}
+#screen-home.active{display:flex !important;flex-direction:column}
 #screen-loading.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:32px}
 #screen-onboarding.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:24px}
 #screen-apikey.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;padding:28px;background:var(--bg)}
@@ -60,32 +61,32 @@ input:focus{border-color:var(--primary)}
 .ob-wrap{width:100%;max-width:440px}
 
 /* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;padding:6px 0;padding-bottom:calc(6px + var(--sb));z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,0.06)}
-.nav-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:'Nunito',sans-serif;min-height:60px;padding:8px 4px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
-.nav-btn .nav-icon{font-size:26px;line-height:1;pointer-events:none}
-.nav-btn .nav-label{font-size:11px;font-weight:700;color:var(--text-muted);pointer-events:none}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;padding:4px 0;padding-bottom:calc(4px + var(--sb));z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,0.06)}
+.nav-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Nunito',sans-serif;min-height:52px;padding:6px 4px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.nav-btn .nav-icon{font-size:24px;line-height:1;pointer-events:none}
+.nav-btn .nav-label{font-size:10px;font-weight:700;color:var(--text-muted);pointer-events:none}
 .nav-btn.active .nav-icon{transform:scale(1.1)}
 .nav-btn.active .nav-label{color:var(--primary)}
 
 /* HOME */
-.home-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:calc(var(--st) + 20px) 24px 36px;text-align:center}
-.home-hero h1{font-size:26px;font-weight:900;color:#fff;margin:6px 0 4px}
-.home-hero p{color:rgba(255,255,255,.8);font-size:15px}
-.home-content{padding:0 16px calc(76px + var(--sb));margin-top:-16px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:none}
+.home-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:16px 20px 28px;padding-top:calc(var(--st) + 16px);text-align:center;flex-shrink:0}
+.home-hero h1{font-size:24px;font-weight:900;color:#fff;margin:4px 0 3px}
+.home-hero p{color:rgba(255,255,255,.8);font-size:14px}
+.home-content{padding:0 14px 0;padding-bottom:calc(70px + var(--sb));margin-top:-14px;display:flex;flex-direction:column;gap:8px;overscroll-behavior:none}
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .quick-card{text-align:center;padding:22px 12px;cursor:pointer}
 
 /* PLANNING */
-.page-header{background:#fff;border-bottom:1px solid var(--border);padding:calc(var(--st) + 14px) 18px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.page-header{background:#fff;border-bottom:1px solid var(--border);padding:calc(var(--st) + 10px) 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
 .page-header h2{font-size:18px;font-weight:900}
-.page-content{padding:16px 16px calc(80px + var(--sb));display:flex;flex-direction:column;gap:10px}
+.page-content{padding:12px 14px calc(68px + var(--sb));display:flex;flex-direction:column;gap:8px}
 .week-label{padding:8px 4px;font-weight:900;font-size:14px;color:var(--primary);text-transform:uppercase}
 .meal-card{padding:14px 16px}
 
 /* RECIPE */
 .recipe-hero{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:calc(var(--st) + 20px) 22px 36px}
 .recipe-hero .back-btn{background:rgba(255,255,255,.2);border:none;border-radius:10px;padding:8px 14px;color:#fff;font-weight:800;cursor:pointer;margin-bottom:16px;font-family:'Nunito',sans-serif;font-size:14px}
-.recipe-content{padding:18px 16px calc(80px + var(--sb));display:flex;flex-direction:column;gap:14px}
+.recipe-content{padding:14px 14px calc(68px + var(--sb));display:flex;flex-direction:column;gap:10px}
 .step-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}
 .step-row:last-child{border:none}
 .step-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0}
@@ -149,7 +150,7 @@ input:focus{border-color:var(--primary)}
   </div>
 </div>
 
-<div id="screen-home" class="screen">
+<div id="screen-home" class="screen" style="display:none;flex-direction:column;">
   <div class="home-hero">
     <div id="logo-home" style="display:flex;justify-content:center;margin-bottom:4px;"></div>
     <h1>FamilyMeals</h1>
@@ -290,10 +291,10 @@ function makeLogo(size,light){
 }
 
 function injectLogos(){
-  var a=document.getElementById('logo-apikey');if(a)a.innerHTML=makeLogo(80,false);
-  var h=document.getElementById('logo-home');if(h)h.innerHTML=makeLogo(64,true);
+  var a=document.getElementById('logo-apikey');if(a)a.innerHTML=makeLogo(72,false);
+  var h=document.getElementById('logo-home');if(h)h.innerHTML=makeLogo(52,true);
   var l=document.getElementById('logo-loading');
-  if(l){l.innerHTML=makeLogo(72,false);var s=l.querySelector('svg');if(s)s.classList.add('logo-spin');}
+  if(l){l.innerHTML=makeLogo(64,false);var s=l.querySelector('svg');if(s)s.classList.add('logo-spin');}
 }
 
 function showScreen(name){
@@ -683,29 +684,37 @@ document.addEventListener('DOMContentLoaded', function() {
 // FIX HAUTEUR SAFARI — empêche le saut quand la barre URL se cache
 // ═══════════════════════════════════════
 function fixHeight() {
-  // Utiliser visualViewport si dispo (plus précis sur iOS)
-  var h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-  var w = (window.visualViewport ? window.visualViewport.width : window.innerWidth);
+  var h = window.innerHeight;
+  var w = window.innerWidth;
+  // Appliquer au body et à tous les écrans
   document.body.style.height = h + 'px';
   document.body.style.width = w + 'px';
   document.querySelectorAll('.screen').forEach(function(s) {
     s.style.height = h + 'px';
+    s.style.maxHeight = h + 'px';
   });
+  // Positionner la nav en bas de la vraie hauteur
+  var nav = document.getElementById('main-nav');
+  if (nav) {
+    nav.style.bottom = '0';
+  }
 }
 
-// Fixer une fois au chargement
+// Fixer immédiatement
 fixHeight();
 
-// Sur iOS, bloquer tout scroll de la page entière
+// Bloquer tout scroll de la page racine sur iOS
 document.addEventListener('touchmove', function(e) {
-  // Autoriser le scroll uniquement dans les écrans actifs (.screen.active)
-  var screen = document.querySelector('.screen.active');
-  if (screen && screen.contains(e.target)) return; // laisser passer
-  e.preventDefault(); // bloquer tout le reste
+  var active = document.querySelector('.screen.active');
+  if (active && active.contains(e.target) && active.scrollHeight > active.clientHeight) {
+    return; // scroll autorisé dans l'écran actif si son contenu déborde
+  }
+  e.preventDefault();
 }, { passive: false });
 
+// Recalculer seulement au changement d'orientation
 window.addEventListener('orientationchange', function() {
-  setTimeout(fixHeight, 400);
+  setTimeout(fixHeight, 500);
 });
 
 init();
