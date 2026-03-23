@@ -68,10 +68,10 @@ input:focus{border-color:var(--primary)}
 .nav-btn.active .nav-label{color:var(--primary)}
 
 /* HOME */
-.home-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:calc(var(--st) + 40px) 24px 52px;text-align:center}
-.home-hero h1{font-size:30px;font-weight:900;color:#fff;margin:8px 0 6px}
+.home-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:calc(var(--st) + 20px) 24px 36px;text-align:center}
+.home-hero h1{font-size:26px;font-weight:900;color:#fff;margin:6px 0 4px}
 .home-hero p{color:rgba(255,255,255,.8);font-size:15px}
-.home-content{padding:0 16px calc(80px + var(--sb));margin-top:-22px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:none}
+.home-content{padding:0 16px calc(76px + var(--sb));margin-top:-16px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:none}
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .quick-card{text-align:center;padding:22px 12px;cursor:pointer}
 
@@ -176,10 +176,16 @@ input:focus{border-color:var(--primary)}
 </div>
 
 <div id="screen-planning" class="screen">
-  <div class="page-header">
-    <button style="background:none;border:none;cursor:pointer;font-size:20px;" onclick="showScreen('home')">←</button>
-    <h2>Planning 14 jours</h2>
-    <button class="btn btn-danger btn-sm" onclick="openEmergency()">🚨 Urgence</button>
+  <div class="page-header" style="flex-direction:column;gap:8px;align-items:stretch;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <button style="background:none;border:none;cursor:pointer;font-size:20px;" onclick="showScreen('home')">←</button>
+      <h2>Planning 14 jours</h2>
+      <button class="btn btn-danger btn-sm" onclick="openEmergency()">🚨 Urgence</button>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button class="chip active" id="plan-week1-btn" onclick="setPlanWeek(1)">Semaine 1</button>
+      <button class="chip" id="plan-week2-btn" onclick="setPlanWeek(2)">Semaine 2</button>
+    </div>
   </div>
   <div class="page-content" id="planning-content"><div style="text-align:center;padding:40px;color:var(--text-muted);">Aucun planning généré.</div></div>
 </div>
@@ -259,7 +265,8 @@ var state={
   history:JSON.parse(localStorage.getItem('fm_history')||'[]'),
   checked:JSON.parse(localStorage.getItem('fm_checked')||'{}'),
   ratings:JSON.parse(localStorage.getItem('fm_ratings')||'{}'),
-  shopWeek:1
+  shopWeek:1,
+  planWeek:1
 };
 
 function save(key,val){state[key]=val;localStorage.setItem('fm_'+key,JSON.stringify(val));}
@@ -531,8 +538,8 @@ function renderPlanning(){
   var plan=state.plan;var el=document.getElementById('planning-content');
   if(!plan||!plan.meals){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted);">Aucun planning généré.</div>';return;}
   var html='';
-  [1,2].forEach(function(week){
-    html+='<div class="week-label">— Semaine '+week+' —</div>';
+  var weeksToShow = [state.planWeek];
+  weeksToShow.forEach(function(week){
     plan.meals.filter(function(m){return week===1?m.day<=7:m.day>7;}).forEach(function(meal){
       var rating=state.ratings[meal.day];
       html+='<div class="card meal-card"><div style="display:flex;gap:12px;align-items:center;">'
@@ -584,6 +591,13 @@ function rateDay(day,rating){
   var cr=state.ratings[day];
   document.getElementById('recipe-rating').innerHTML=[{v:'like',l:'👍 Aimé'},{v:'refaire',l:'🔄 À refaire'},{v:'moyen',l:'😐 Moyen'},{v:'ban',l:'❌ Ne plus faire'}]
     .map(function(r){return '<button class="chip'+(cr===r.v?' active':'')+'" onclick="rateDay('+day+',\''+r.v+'\')">'+r.l+'</button>';}).join('');
+}
+
+function setPlanWeek(w){
+  state.planWeek=w;
+  document.getElementById('plan-week1-btn').classList.toggle('active',w===1);
+  document.getElementById('plan-week2-btn').classList.toggle('active',w===2);
+  renderPlanning();
 }
 
 function setShopWeek(w){
