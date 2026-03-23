@@ -58,10 +58,10 @@ input:focus{border-color:var(--primary)}
 .ob-wrap{width:100%;max-width:440px}
 
 /* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;padding:6px 0;padding-bottom:calc(6px + var(--sb));z-index:50;box-shadow:0 -2px 12px rgba(0,0,0,0.06)}
-.nav-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:'Nunito',sans-serif;min-height:56px;padding:8px 4px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.nav-btn .nav-icon{font-size:26px;line-height:1}
-.nav-btn .nav-label{font-size:11px;font-weight:700;color:var(--text-muted)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;padding:6px 0;padding-bottom:calc(6px + var(--sb));z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,0.06)}
+.nav-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:'Nunito',sans-serif;min-height:60px;padding:8px 4px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.nav-btn .nav-icon{font-size:26px;line-height:1;pointer-events:none}
+.nav-btn .nav-label{font-size:11px;font-weight:700;color:var(--text-muted);pointer-events:none}
 .nav-btn.active .nav-icon{transform:scale(1.1)}
 .nav-btn.active .nav-label{color:var(--primary)}
 
@@ -172,10 +172,10 @@ input:focus{border-color:var(--primary)}
     </div>
   </div>
   <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="showScreen('home')"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
-    <button class="nav-btn" onclick="showScreen('planning')"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
-    <button class="nav-btn" onclick="showScreen('shopping')"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
-    <button class="nav-btn" onclick="showScreen('settings')"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
+    <button class="nav-btn active" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
+    <button class="nav-btn" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
+    <button class="nav-btn" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
+    <button class="nav-btn" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
   </nav>
 </div>
 
@@ -187,10 +187,10 @@ input:focus{border-color:var(--primary)}
   </div>
   <div class="page-content" id="planning-content"><div style="text-align:center;padding:40px;color:var(--text-muted);">Aucun planning généré.</div></div>
   <nav class="bottom-nav">
-    <button class="nav-btn" onclick="showScreen('home')"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
-    <button class="nav-btn active" onclick="showScreen('planning')"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
-    <button class="nav-btn" onclick="showScreen('shopping')"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
-    <button class="nav-btn" onclick="showScreen('settings')"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
+    <button class="nav-btn" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
+    <button class="nav-btn active" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
+    <button class="nav-btn" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
+    <button class="nav-btn" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
   </nav>
 </div>
 
@@ -222,10 +222,10 @@ input:focus{border-color:var(--primary)}
   </div>
   <div class="page-content" id="shopping-content" style="padding-top:10px;"></div>
   <nav class="bottom-nav">
-    <button class="nav-btn" onclick="showScreen('home')"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
-    <button class="nav-btn" onclick="showScreen('planning')"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
-    <button class="nav-btn active" onclick="showScreen('shopping')"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
-    <button class="nav-btn" onclick="showScreen('settings')"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
+    <button class="nav-btn" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
+    <button class="nav-btn" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
+    <button class="nav-btn active" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
+    <button class="nav-btn" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
   </nav>
 </div>
 
@@ -243,10 +243,10 @@ input:focus{border-color:var(--primary)}
     <button class="btn btn-danger" style="width:100%;margin-top:8px;" onclick="clearAll()">🗑️ Tout effacer</button>
   </div>
   <nav class="bottom-nav">
-    <button class="nav-btn" onclick="showScreen('home')"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
-    <button class="nav-btn" onclick="showScreen('planning')"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
-    <button class="nav-btn" onclick="showScreen('shopping')"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
-    <button class="nav-btn active" onclick="showScreen('settings')"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
+    <button class="nav-btn" data-nav="home"><span class="nav-icon">🏠</span><span class="nav-label">Accueil</span></button>
+    <button class="nav-btn" data-nav="planning"><span class="nav-icon">📅</span><span class="nav-label">Planning</span></button>
+    <button class="nav-btn" data-nav="shopping"><span class="nav-icon">🛒</span><span class="nav-label">Courses</span></button>
+    <button class="nav-btn active" data-nav="settings"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></button>
   </nav>
 </div>
 
@@ -638,6 +638,23 @@ function renderSettings(){
 
 function resetProfile(){if(confirm('Refaire l\'onboarding ?')){localStorage.removeItem('fm_profile');state.profile=null;startOnboarding();}}
 function clearAll(){if(confirm('Tout effacer ?')){['profile','plan','history','checked','ratings'].forEach(function(k){localStorage.removeItem('fm_'+k);});state.profile=null;state.plan=null;state.history=[];state.checked={};state.ratings={};showScreen('apikey');}}
+
+// ═══════════════════════════════════════
+// NAV TACTILE — touchend pour éviter le problème post-scroll
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.nav-btn[data-nav]').forEach(function(btn) {
+    btn.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      showScreen(btn.getAttribute('data-nav'));
+    }, {passive: false});
+    // Fallback click pour desktop
+    btn.addEventListener('click', function(e) {
+      showScreen(btn.getAttribute('data-nav'));
+    });
+  });
+});
 
 init();
 </script>
