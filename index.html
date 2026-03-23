@@ -21,7 +21,8 @@
   --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;height:100%;overflow:hidden;-webkit-font-smoothing:antialiased;position:fixed;width:100%}
+html{background:var(--bg);overflow:hidden;height:100%;height:100svh}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%}
 .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:18px 20px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
 .btn{border:none;border-radius:12px;cursor:pointer;font-weight:700;font-family:'Nunito',sans-serif;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn-primary{background:var(--primary);color:#fff;padding:14px 24px;font-size:15px}
@@ -37,7 +38,8 @@ input[type=text],input[type=password]{width:100%;padding:11px 14px;border-radius
 input:focus{border-color:var(--primary)}
 
 /* SCREENS */
-.screen{display:none !important;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);overscroll-behavior:none}
+.screen{display:none !important;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);overscroll-behavior-y:contain;touch-action:pan-y}
+#screen-home{overflow-y:hidden}
 .screen.active{display:block !important}
 #screen-loading.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:32px}
 #screen-onboarding.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:24px}
@@ -69,7 +71,7 @@ input:focus{border-color:var(--primary)}
 .home-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:calc(var(--st) + 40px) 24px 52px;text-align:center}
 .home-hero h1{font-size:30px;font-weight:900;color:#fff;margin:8px 0 6px}
 .home-hero p{color:rgba(255,255,255,.8);font-size:15px}
-.home-content{padding:0 16px calc(80px + var(--sb));margin-top:-22px;display:flex;flex-direction:column;gap:14px}
+.home-content{padding:0 16px calc(80px + var(--sb));margin-top:-22px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:none}
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .quick-card{text-align:center;padding:22px 12px;cursor:pointer}
 
@@ -667,22 +669,29 @@ document.addEventListener('DOMContentLoaded', function() {
 // FIX HAUTEUR SAFARI — empêche le saut quand la barre URL se cache
 // ═══════════════════════════════════════
 function fixHeight() {
-  var h = window.innerHeight;
-  document.documentElement.style.setProperty('--real-vh', h + 'px');
+  // Utiliser visualViewport si dispo (plus précis sur iOS)
+  var h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+  var w = (window.visualViewport ? window.visualViewport.width : window.innerWidth);
   document.body.style.height = h + 'px';
+  document.body.style.width = w + 'px';
   document.querySelectorAll('.screen').forEach(function(s) {
     s.style.height = h + 'px';
-    s.style.maxHeight = h + 'px';
   });
-  var nav = document.getElementById('main-nav');
-  if (nav) nav.style.bottom = '0px';
 }
 
-// Fixer au chargement
+// Fixer une fois au chargement
 fixHeight();
-// Ne pas écouter resize pour éviter les sauts — la hauteur reste fixe
+
+// Sur iOS, bloquer tout scroll de la page entière
+document.addEventListener('touchmove', function(e) {
+  // Autoriser le scroll uniquement dans les écrans actifs (.screen.active)
+  var screen = document.querySelector('.screen.active');
+  if (screen && screen.contains(e.target)) return; // laisser passer
+  e.preventDefault(); // bloquer tout le reste
+}, { passive: false });
+
 window.addEventListener('orientationchange', function() {
-  setTimeout(fixHeight, 300);
+  setTimeout(fixHeight, 400);
 });
 
 init();
