@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FamilyMeals">
 <meta name="theme-color" content="#1a2e1f">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" type="image/png" href="icon.png">
 <title>FamilyMeals</title>
@@ -20,9 +23,13 @@
   --purple:#7B5EA7; --radius:14px;
   --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
 }
+
+/* RESET — exactement comme ImpotGE */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;width:100%;max-width:100%;height:100%;margin:0;padding:0}
-.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:18px 20px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
+html,body{background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* UTILS */
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:16px 18px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
 .btn{border:none;border-radius:12px;cursor:pointer;font-weight:700;font-family:'Nunito',sans-serif;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn-primary{background:var(--primary);color:#fff;padding:14px 24px;font-size:15px}
 .btn-primary:active{transform:scale(.97)}
@@ -36,14 +43,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,
 input[type=text],input[type=password]{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;color:var(--text)}
 input:focus{border-color:var(--primary)}
 
-/* SCREENS */
-.screen{display:none !important;position:fixed;top:0;left:0;width:100%;max-width:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);overscroll-behavior-y:contain;box-sizing:border-box}
-#screen-home{overflow-y:hidden}
-.screen.active{display:block !important}
-#screen-home.active{display:flex !important;flex-direction:column}
-#screen-loading.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:32px}
-#screen-onboarding.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);padding:24px}
-#screen-apikey.active{display:flex !important;flex-direction:column;align-items:center;justify-content:center;padding:28px;background:var(--bg)}
+/* SCREENS — comme .view dans ImpotGE */
+.screen{display:none}
+.screen.active{display:block}
+#screen-loading.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;gap:20px;text-align:center;padding:32px}
+#screen-onboarding.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:24px}
+#screen-apikey.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:28px}
 
 /* LOADING */
 .dots{display:inline-flex;gap:5px}
@@ -59,33 +64,32 @@ input:focus{border-color:var(--primary)}
 .progress-seg.done{background:var(--primary)}
 .ob-wrap{width:100%;max-width:440px}
 
-/* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;width:100%;max-width:100%;background:#fff;border-top:1px solid var(--border);display:flex;padding:4px 0;padding-bottom:calc(4px + var(--sb));z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,0.06);box-sizing:border-box}
-.nav-btn{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Nunito',sans-serif;min-height:52px;padding:6px 4px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
-.nav-btn .nav-icon{font-size:24px;line-height:1;pointer-events:none}
-.nav-btn .nav-label{font-size:10px;font-weight:700;color:var(--text-muted);pointer-events:none}
-.nav-btn.active .nav-icon{transform:scale(1.1)}
-.nav-btn.active .nav-label{color:var(--primary)}
+/* BOTTOM NAV — comme .bnav dans ImpotGE */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#fff;border-top:1px solid var(--border);padding:8px 0;padding-bottom:calc(8px + var(--sb));display:flex;justify-content:space-around}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 20px;background:none;border:none;color:var(--text-muted);font-family:'Nunito',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.nav-btn .nav-icon{font-size:22px;pointer-events:none}
+.nav-btn .nav-label{font-size:11px;font-weight:600;pointer-events:none}
+.nav-btn.active{color:var(--primary)}
 
 /* HOME */
-.home-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:16px 20px 28px;padding-top:calc(var(--st) + 16px);text-align:center;flex-shrink:0}
-.home-hero h1{font-size:24px;font-weight:900;color:#fff;margin:4px 0 3px}
+.home-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);padding:calc(var(--st) + 24px) 20px 36px;text-align:center}
+.home-hero h1{font-size:26px;font-weight:900;color:#fff;margin:6px 0 4px}
 .home-hero p{color:rgba(255,255,255,.8);font-size:14px}
-.home-content{padding:0 14px 0;padding-bottom:calc(70px + var(--sb));margin-top:-14px;display:flex;flex-direction:column;gap:8px;overscroll-behavior:none}
+.home-content{padding:0 16px calc(80px + var(--sb));margin-top:-16px;display:flex;flex-direction:column;gap:12px}
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.quick-card{text-align:center;padding:22px 12px;cursor:pointer}
+.quick-card{text-align:center;padding:20px 12px;cursor:pointer}
 
-/* PLANNING */
-.page-header{background:#fff;border-bottom:1px solid var(--border);padding:calc(var(--st) + 10px) 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;width:100%;box-sizing:border-box;overflow:hidden}
-.page-header h2{font-size:18px;font-weight:900}
-.page-content{padding:12px 14px calc(68px + var(--sb));display:flex;flex-direction:column;gap:8px}
-.week-label{padding:8px 4px;font-weight:900;font-size:14px;color:var(--primary);text-transform:uppercase}
+/* PLANNING & PAGES */
+.page-header{background:#fff;border-bottom:1px solid var(--border);padding:calc(var(--st) + 12px) 16px 12px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.page-header h2{font-size:17px;font-weight:900}
+.page-content{padding:14px 16px calc(80px + var(--sb));display:flex;flex-direction:column;gap:10px}
+.week-label{padding:6px 4px;font-weight:900;font-size:13px;color:var(--primary);text-transform:uppercase}
 .meal-card{padding:14px 16px}
 
 /* RECIPE */
-.recipe-hero{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:calc(var(--st) + 20px) 22px 36px}
+.recipe-hero{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:calc(var(--st) + 20px) 20px 32px}
 .recipe-hero .back-btn{background:rgba(255,255,255,.2);border:none;border-radius:10px;padding:8px 14px;color:#fff;font-weight:800;cursor:pointer;margin-bottom:16px;font-family:'Nunito',sans-serif;font-size:14px}
-.recipe-content{padding:14px 14px calc(68px + var(--sb));display:flex;flex-direction:column;gap:10px}
+.recipe-content{padding:16px 16px calc(80px + var(--sb));display:flex;flex-direction:column;gap:12px}
 .step-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}
 .step-row:last-child{border:none}
 .step-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0}
@@ -109,6 +113,9 @@ input:focus{border-color:var(--primary)}
 /* API KEY */
 .apikey-wrap{width:100%;max-width:420px}
 .apikey-info{background:#EEF7F3;border-radius:12px;padding:14px 16px;font-size:13px;color:var(--primary);margin-top:14px;line-height:1.6}
+
+/* MAIN — comme .main dans ImpotGE, centrage max 600px */
+.main-content{max-width:600px;margin:0 auto}
 </style>
 </head>
 <body>
@@ -420,7 +427,14 @@ function buildPromptWeek(weekNum, startDay, endDay, avoid, profile){
     +', '+portions+' portions/repas'
     +(avoid?'\nNe pas répéter: '+avoid:'')
     +'\n'+(hasAF?'Priorité Air Fryer/vapeur. ':'')
-    +'1 protéine + 1 féculent + 1-2 légumes. Max 3 étapes courtes.\n'
+    +'ROTATION PROTÉINES OBLIGATOIRE sur les 7 jours: exactement 2 repas poulet, 1 repas boeuf ou veau, 1 repas poisson, 1 repas végétarien, 1 repas dinde ou porc, 1 repas libre (agneau, fruits de mer, etc.). Ne pas faire 2 poulets consécutifs.\n'
+    +'1 protéine + 1 féculent + 1-2 légumes par repas.\n'
+    +'RECETTES DÉTAILLÉES OBLIGATOIRE:\n'
+    +'- Toujours inclure une sauce ou marinade (ex: sauce yaourt-citron, marinade soja-miel, sauce tomate épicée, vinaigrette moutarde, crème légère aux herbes, sauce teriyaki, chermoula, etc.)\n'
+    +'- 4 à 6 étapes claires et précises avec temps de cuisson exacts\n'
+    +'- Indiquer les assaisonnements précis (quantités sel, poivre, épices)\n'
+    +'- Mentionner la température et durée de cuisson\n'
+    +'- Astuce de chef utile et concrète\n'
     +'JSON valide UNIQUEMENT, jours '+days.join(',')+' :\n'
     +'{"meals":[{"day":'+startDay+',"name":"Nom","time":"20 min","method":"Air Fryer","emoji":"🍗","protein":"poulet","complexity":"simple","portions":'+portions+',"ingredients":[{"item":"Poulet","qty":"600g","category":"viandes"},{"item":"Riz","qty":"300g","category":"epicerie"}],"steps":["Assaisonner","Cuire 20min Air Fryer","Servir"],"tip":"Astuce courte","emergency":false}]}';
 }
@@ -445,13 +459,13 @@ async function generatePlan(){
   try{
     // Appel 1 : semaine 1 (jours 1-7)
     document.getElementById('loading-msg').textContent='🍽️ Semaine 1 en cours...';
-    var r1=await callClaude(buildPromptWeek(1,1,7,'',state.profile),3500);
+    var r1=await callClaude(buildPromptWeek(1,1,7,'',state.profile),5000);
     var meals1=r1.meals||[];
 
     // Appel 2 : semaine 2 (jours 8-14)
     document.getElementById('loading-msg').textContent='🍽️ Semaine 2 en cours...';
     var avoid2=meals1.map(function(m){return m.name;}).join(', ');
-    var r2=await callClaude(buildPromptWeek(2,8,14,avoid2,state.profile),3500);
+    var r2=await callClaude(buildPromptWeek(2,8,14,avoid2,state.profile),5000);
     var meals2=r2.meals||[];
 
     // Appel 3 : courses semaine 1
@@ -482,14 +496,58 @@ async function replaceDay(day){
   var btn=document.getElementById('replace-btn-'+day);
   if(btn){btn.textContent='⏳';btn.disabled=true;}
   try{
+    // Appel 1 : nouveau repas
     var p=state.profile;var portions=p.adults+(p.lunches?p.adults:0);
     var prompt='Génère UN repas différent de "'+(meal?meal.name:'')+'". Profil: '+p.adults+' adultes, équipements: '+p.equipment.join(', ')+', max '+p.maxTime+'min, '+portions+' portions.\n'
-      +'UNIQUEMENT JSON valide:\n{"meal":{"day":'+day+',"name":"...","time":"...","method":"...","emoji":"...","protein":"...","complexity":"simple","portions":'+portions+',"ingredients":[{"item":"...","qty":"...","category":"..."}],"steps":["..."],"tip":"...","emergency":false}}';
-    var result=await callClaude(prompt,1200);
+      +'UNIQUEMENT JSON valide:\n{"meal":{"day":'+day+',"name":"...","time":"...","method":"...","emoji":"...","protein":"...","complexity":"simple","portions":'+portions+',"ingredients":[{"item":"Poulet","qty":"600g","category":"viandes"},{"item":"Riz","qty":"300g","category":"epicerie"},{"item":"Brocoli","qty":"300g","category":"legumes"}],"steps":["..."],"tip":"...","emergency":false}}';
+    var result=await callClaude(prompt,2000);
     var newMeals=state.plan.meals.map(function(m){return m.day===day?Object.assign({},result.meal,{day:day}):m;});
-    save('plan',Object.assign({},state.plan,{meals:newMeals}));
-  }catch(e){alert('Erreur: '+e.message);}
+
+    // Reconstruire la liste de courses directement depuis les ingrédients — sans appel API
+    var week=day<=7?1:2;
+    var shopKey='semaine'+week;
+    var weekMeals=newMeals.filter(function(m){return week===1?m.day<=7:m.day>7;});
+    var newList=rebuildShoppingList(weekMeals);
+    var newShop=Object.assign({},state.plan.shopping_list);
+    newShop[shopKey]=newList;
+
+    // Construire le nouveau plan complet
+    var newPlan = {
+      generated_at: state.plan.generated_at,
+      meals: newMeals,
+      shopping_list: {
+        semaine1: week===1 ? newList : (state.plan.shopping_list.semaine1||[]),
+        semaine2: week===2 ? newList : (state.plan.shopping_list.semaine2||[])
+      }
+    };
+    save('plan', newPlan);
+
+    // Effacer les cases cochées de la semaine modifiée
+    var newChecked={};
+    Object.keys(state.checked).forEach(function(k){
+      if(!k.startsWith(week+'-'))newChecked[k]=state.checked[k];
+    });
+    save('checked', newChecked);
+
+  }catch(e){alert('Erreur lors du remplacement: '+e.message);}
   renderPlanning();
+  if(document.querySelector('#screen-shopping.active')) renderShopping();
+}
+
+// Reconstruit la liste de courses depuis les ingrédients des repas (sans API)
+function rebuildShoppingList(meals){
+  var merged={};
+  meals.forEach(function(meal){
+    (meal.ingredients||[]).forEach(function(ing){
+      var key=(ing.item||'').toLowerCase().trim();
+      if(!key)return;
+      if(!merged[key]){
+        merged[key]={item:ing.item,qty:ing.qty,category:ing.category||'autre'};
+      }
+      // Si même ingrédient, garder la plus grande quantité
+    });
+  });
+  return Object.values(merged);
 }
 
 async function openEmergency(){
@@ -521,7 +579,12 @@ function renderHome(){
   var nextGen=new Date(genDate.getTime()+14*24*60*60*1000);
   var daysLeft=Math.max(0,Math.round((nextGen-new Date())/(24*60*60*1000)));
   document.getElementById('home-status').textContent=daysLeft>0?'Renouvellement dans '+daysLeft+' jour'+(daysLeft>1?'s':''):'🔄 Renouvellement recommandé !';
-  var dayNum=(Math.floor((new Date()-genDate)/(24*60*60*1000))%14)+1;
+  // Calculer le jour correct basé sur la date calendaire (pas les heures écoulées)
+  var today=new Date();
+  var todayMidnight=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  var genMidnight=new Date(genDate.getFullYear(),genDate.getMonth(),genDate.getDate());
+  var daysDiff=Math.floor((todayMidnight-genMidnight)/(24*60*60*1000));
+  var dayNum=(daysDiff%14)+1;
   var todayMeal=plan.meals?plan.meals.filter(function(m){return m.day===dayNum;})[0]:null;
   var tonightEl=document.getElementById('home-tonight');
   if(todayMeal){
@@ -682,32 +745,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // ═══════════════════════════════════════
 // FIX HAUTEUR SAFARI — empêche le saut quand la barre URL se cache
 // ═══════════════════════════════════════
-function fixHeight() {
-  var h = window.innerHeight;
-  // Appliquer uniquement la hauteur — laisser le CSS gérer la largeur
-  document.body.style.height = h + 'px';
-  document.querySelectorAll('.screen').forEach(function(s) {
-    s.style.height = h + 'px';
-  });
-}
-
-// Fixer immédiatement
-fixHeight();
-
-// Bloquer tout scroll de la page racine sur iOS
-document.addEventListener('touchmove', function(e) {
-  var active = document.querySelector('.screen.active');
-  if (active && active.contains(e.target) && active.scrollHeight > active.clientHeight) {
-    return; // scroll autorisé dans l'écran actif si son contenu déborde
-  }
-  e.preventDefault();
-}, { passive: false });
-
-// Recalculer seulement au changement d'orientation
-window.addEventListener('orientationchange', function() {
-  setTimeout(fixHeight, 500);
-});
-
 init();
 </script>
 </body>
