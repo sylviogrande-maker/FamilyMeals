@@ -518,6 +518,9 @@ async function replaceDay(day){
     var p=S.profile;
     var portions=p.adults+(p.lunches?p.adults:0);
     var oldMeal=S.plan.meals.filter(function(m){return m.day===day;})[0];
+    var week=day<=7?1:2;
+
+    // APPEL 1 : Générer le nouveau repas
     var prompt='Génère UN dîner différent de "'+(oldMeal?oldMeal.name:'')+'". '
       +'Équipements: '+p.equipment.join(', ')+', max '+p.maxTime+'min, '+portions+' portions.\n'
       +'DOIT inclure une sauce ou marinade. 4-5 étapes avec températures précises.\n'
@@ -527,27 +530,18 @@ async function replaceDay(day){
 
     var res=await callAPI(prompt,2000);
     var newMeal=Object.assign({},res.meal,{day:day});
-
-    // Mettre à jour les repas
     var newMeals=S.plan.meals.map(function(m){return m.day===day?newMeal:m;});
 
-    // Reconstruire la liste de courses de la semaine depuis les ingrédients
-    var week=day<=7?1:2;
-    var weekMeals=newMeals.filter(function(m){return week===1?m.day<=7:m.day>7;});
-    var newList=buildListFromMeals(weekMeals);
-
-    // Sauvegarder
+    // Sauvegarder uniquement les repas mis à jour
+    // La liste de courses est recalculée automatiquement depuis les ingrédients
     var newPlan={
       generated_at:S.plan.generated_at,
       meals:newMeals,
-      shopping_list:{
-        semaine1:week===1?newList:(S.plan.shopping_list.semaine1||[]),
-        semaine2:week===2?newList:(S.plan.shopping_list.semaine2||[])
-      }
+      shopping_list:S.plan.shopping_list
     };
     sv('plan',newPlan);
 
-    // Effacer les cases cochées de la semaine
+    // Effacer les cases cochées de la semaine modifiée
     var newChecked={};
     Object.keys(S.checked).forEach(function(k){if(!k.startsWith(week+'-'))newChecked[k]=S.checked[k];});
     sv('checked',newChecked);
@@ -755,7 +749,10 @@ function setSW(w){
 function renderShopping(){
   var el=document.getElementById('shop-list');
   if(!S.plan){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">Générez d\'abord votre planning.</div>';return;}
-  var list=(S.plan.shopping_list&&S.plan.shopping_list['semaine'+S.shopWeek])||[];
+  // Toujours recalculer depuis les ingrédients des repas (source de vérité)
+  var w=S.shopWeek;
+  var weekMeals=S.plan.meals.filter(function(m){return w===1?m.day<=7:m.day>7;});
+  var list=buildListFromMeals(weekMeals);
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">Liste vide.</div>';return;}
   var html='';
   CATS.forEach(function(cat){
