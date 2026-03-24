@@ -551,22 +551,32 @@ async function replaceDay(day){
 }
 
 // Construit la liste depuis les ingrédients des repas (sans API)
+function normCat(cat){
+  // Normaliser les catégories non standard vers les catégories connues
+  var c=(cat||'').toLowerCase().trim();
+  if(['legumes','fruits','viandes','cremerie','epicerie','surgeles'].indexOf(c)>=0)return c;
+  if(['poissons','poisson','fruits de mer','seafood'].indexOf(c)>=0)return 'viandes';
+  if(['produits_laitiers','laitier','laitiers','dairy'].indexOf(c)>=0)return 'cremerie';
+  if(['herbes','epices','condiments','alcools','alcool','sauces'].indexOf(c)>=0)return 'epicerie';
+  if(['pain','boulangerie','cereales','legumineuses','feculents'].indexOf(c)>=0)return 'epicerie';
+  return 'autre';
+}
+
 function buildListFromMeals(meals){
   var map={};
   meals.forEach(function(m){
     (m.ingredients||[]).forEach(function(ing){
       var k=(ing.item||'').toLowerCase().trim();
       if(!k)return;
+      var cat=normCat(ing.category);
       if(!map[k]){
-        map[k]={item:ing.item,qty:ing.qty,category:ing.category||'autre',_qtys:[ing.qty]};
+        map[k]={item:ing.item,qty:ing.qty,category:cat,_qtys:[ing.qty]};
       } else {
         map[k]._qtys.push(ing.qty);
-        // Additionner les quantités numériques
         map[k].qty=addQtys(map[k]._qtys);
       }
     });
   });
-  // Nettoyer _qtys avant retour
   return Object.values(map).map(function(i){delete i._qtys;return i;});
 }
 
