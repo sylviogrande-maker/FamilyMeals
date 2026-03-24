@@ -454,13 +454,23 @@ function promptWeek(wk,sDay,eDay,avoid){
 }
 
 function promptShopping(wkNum,meals){
-  var lines=meals.map(function(m){
-    var ings=(m.ingredients||[]).map(function(i){return i.item+' '+i.qty;}).join(', ');
-    return 'Jour '+m.day+' - '+m.name+(ings?' ('+ings+')':'');
-  }).join('\n');
-  return 'Génère une liste de courses complète pour ces repas (semaine '+wkNum+').\nRepas:\n'+lines+'\n\n'
-    +'Regroupe et cumule les mêmes ingrédients. Catégories: legumes, fruits, viandes, cremerie, epicerie, surgeles, autre\n'
-    +'Entre 15 et 25 articles. Réponds UNIQUEMENT avec ce JSON (pas de texte avant ou après):\n'
+  // Extraire TOUS les ingrédients de tous les repas
+  var allIngs=[];
+  meals.forEach(function(m){
+    (m.ingredients||[]).forEach(function(ing){
+      allIngs.push('- '+ing.item+' : '+ing.qty+' ['+( ing.category||'autre')+']');
+    });
+  });
+  var mealNames=meals.map(function(m){return m.name;}).join(', ');
+  return 'Génère une liste de courses pour la semaine '+wkNum+' (repas: '+mealNames+').\n\n'
+    +'TOUS les ingrédients nécessaires (OBLIGATOIRE — ne rien oublier):\n'
+    +allIngs.join('\n')+'\n\n'
+    +'RÈGLES:\n'
+    +'1. Inclure CHAQUE ingrédient listé ci-dessus\n'
+    +'2. Additionner les quantités si un même ingrédient apparaît plusieurs fois\n'
+    +'3. Ajouter aussi les ingrédients de base nécessaires (huile, ail, oignons si non listés)\n'
+    +'4. Catégories: legumes, fruits, viandes, cremerie, epicerie, surgeles, autre\n'
+    +'Réponds UNIQUEMENT avec ce JSON (pas de texte avant ou après):\n'
     +'{"shopping_list":{"semaine'+wkNum+'":[{"item":"Blanc de poulet","qty":"800g","category":"viandes"},{"item":"Brocoli","qty":"600g","category":"legumes"}]}}';
 }
 
@@ -553,10 +563,42 @@ function buildListFromMeals(meals){
     (m.ingredients||[]).forEach(function(ing){
       var k=(ing.item||'').toLowerCase().trim();
       if(!k)return;
-      if(!map[k])map[k]={item:ing.item,qty:ing.qty,category:ing.category||'autre'};
+      if(!map[k]){
+        map[k]={item:ing.item,qty:ing.qty,category:ing.category||'autre',_qtys:[ing.qty]};
+      } else {
+        map[k]._qtys.push(ing.qty);
+        // Additionner les quantités numériques
+        map[k].qty=addQtys(map[k]._qtys);
+      }
     });
   });
-  return Object.values(map);
+  // Nettoyer _qtys avant retour
+  return Object.values(map).map(function(i){delete i._qtys;return i;});
+}
+
+// Additionne des quantités comme "600g" + "400g" = "1kg" ou "3cs" + "2cs" = "5cs"
+function addQtys(qtys){
+  if(qtys.length===1)return qtys[0];
+  var total=0;
+  var unit='';
+  var allNumeric=true;
+  qtys.forEach(function(q){
+    var m=(q||'').toString().match(/^([\d.,]+)\s*(.*)$/);
+    if(m){
+      var num=parseFloat(m[1].replace(',','.'));
+      var u=(m[2]||'').trim().toLowerCase();
+      if(!isNaN(num)){total+=num;if(!unit)unit=u;}
+      else allNumeric=false;
+    } else allNumeric=false;
+  });
+  if(!allNumeric||total===0)return qtys[qtys.length-1]; // fallback: garder la dernière
+  // Convertir g→kg si >=1000
+  var rounded=Math.round(total*10)/10;
+  // Formater proprement sans décimales inutiles
+  function fmt(n){return n%1===0?n.toString():(Math.round(n*10)/10).toString();}
+  if(unit==='g'&&rounded>=1000){return fmt(rounded/1000)+'kg';}
+  if(unit==='ml'&&rounded>=1000){return fmt(rounded/1000)+'L';}
+  return fmt(rounded)+unit;
 }
 
 // ═══════════════════════════
